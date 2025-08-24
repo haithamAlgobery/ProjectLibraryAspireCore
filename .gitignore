@@ -1,0 +1,33 @@
+# Build folders
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code settings
+.vscode/
+
+# Rider settings
+.idea/
+
+# ASP.NET Core / publish outputs
+*.publish.xml
+*.deploy.cmd
+*.dbmdl
+*.pdb
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# ASP.NET temporary files
+wwwroot/lib/
