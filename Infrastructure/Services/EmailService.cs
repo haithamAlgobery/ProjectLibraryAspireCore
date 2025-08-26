@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿using Application.IServices;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using System;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Services.EmailServices
+namespace Infrastructure.Services
 {
     public class EmailService : IEmailService
     {
@@ -17,13 +18,13 @@ namespace Infrastructure.Services.EmailServices
             _config = config;
         }
 
-        public void SendWelcomeEmail(string toEmail, string bookTitle)
+        public void SendWelcomeEmail(string toEmail, string messageSend)
         {
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Library", "library@example.com"));
+            message.From.Add(new MailboxAddress("Library", "haihtam@gm.com"));
             message.To.Add(new MailboxAddress("", toEmail));
             message.Subject = "New Book Created";
-            message.Body = new TextPart("plain") { Text = $"Book '{bookTitle}' has been added." };
+            message.Body = new TextPart("plain") { Text = $"{messageSend}" };
 
             using var client = new SmtpClient();
             client.Connect(_config["Smtp:Host"], int.Parse(_config["Smtp:Port"]), false);

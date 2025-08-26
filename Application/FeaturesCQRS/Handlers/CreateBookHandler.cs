@@ -1,4 +1,6 @@
-﻿using Application.Commands;
+﻿using Application.DTOs;
+using Application.FeaturesCQRS.Commands;
+using Application.Helper;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
@@ -8,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Handlers
+namespace Application.FeaturesCQRS.Handlers
 {
-    public class CreateBookHandler : IRequestHandler<CreateBookCommand, Book>
+    public class CreateBookHandler : IRequestHandler<CreateBookCommand, GetBookDto>
     {
         private readonly IBookRepository _repository;
 
@@ -19,7 +21,7 @@ namespace Application.Handlers
             _repository = repository;
         }
 
-        public async Task<Book> Handle(CreateBookCommand request, CancellationToken cancellationToken)
+        public async Task<GetBookDto> Handle(CreateBookCommand request, CancellationToken cancellationToken)
         {
             var book = new Book
             {
@@ -28,7 +30,7 @@ namespace Application.Handlers
                 Year = request.Book.Year
             };
             await _repository.AddAsync(book);
-            return book;
+            return book.MapDataBook();
         }
     }
 }

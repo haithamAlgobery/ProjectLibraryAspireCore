@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Commands
+namespace Application.FeaturesCQRS.Queries
 {
-    public record CreateBookCommand(BookDto Book) : IRequest<Book>;
+    public record GetAllBooksQuery() : IRequest<IEnumerable<GetBookDto>>;
 }

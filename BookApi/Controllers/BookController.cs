@@ -1,7 +1,7 @@
 ﻿using Application.DTOs;
-using Application.Queries;
+using Application.FeaturesCQRS.Queries;
+using Application.IServices;
 using Infrastructure.Roles;
-using Infrastructure.Services.EmailServices;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
@@ -15,38 +15,41 @@ namespace BookApi.Controllers
     [ApiController]
     public class BookController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly IBookService _bookService;
         private readonly IEmailService _emailService;
 
-        public BookController(IMediator mediator,IEmailService emailService)
+        public BookController(IBookService bookService,IEmailService emailService)
         {
-           _mediator = mediator;
+            _bookService = bookService;
             _emailService = emailService;
         }
 
         [HttpPost]
         [Authorize(Roles = $"{RolesName.Admin},{RolesName.Moderator}")]
 
-        public async Task<IActionResult> CrearteNewBook(BookDto model)
+        public async Task<IActionResult> CrearteNewBook(ModelCreateNewBookDto model)
         {
-            var book = await _mediator.Send(model);
+            if(!ModelState.IsValid) 
+                return BadRequest(ModelState);
 
-            if (book == null) {
-                return BadRequest("Error From Input Data");
-            }
 
-            _emailService.SendWelcomeEmail("haitham@gmail.com", "wlcom to Programing ");
+           var result=await _bookService.ProcessingCreateNewBook(model);
 
-            return Ok(book);
+            if (!result.IsSccess) 
+                return BadRequest(result.Message);
+
+
+            _emailService.SendWelcomeEmail("Yussof@gmail.com", "Hello Yussof ");
+           
+            return Ok(result.Data);
         }
+
 
         [HttpGet]
         [Authorize()]
         public async Task<IActionResult> GetDataBooks()
         {
-            var books = await _mediator.Send(new GetAllBooksQuery());
-
-            return Ok(books);
+            return Ok(await _bookService.GetAllBooks());
         }
     }
 }

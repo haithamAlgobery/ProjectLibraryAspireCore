@@ -1,12 +1,13 @@
-using Application.Commands;
-using Application.Handlers;
-using Application.Queries;
+using Application.FeaturesCQRS.Handlers;
+using Application.IServices;
 using Application.Validators;
+using BookApi.Extenstions;
+using BookApi.Middleware;
 using Domain.Interfaces;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Infrastructure.Services.EmailServices;
+using Infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -19,13 +20,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 
-
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MyDb"))
+);
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("redis");
+    options.InstanceName = "bookapi_"; 
+});
 
 
-builder.Services.AddIdentity<Microsoft.AspNetCore.Identity.IdentityUser, Microsoft.AspNetCore.Identity.IdentityRole>()
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
@@ -35,33 +42,19 @@ builder.Services.AddMediatR(typeof(CreateBookHandler).Assembly);
 builder.Services.AddValidatorsFromAssembly(typeof(CreateBookValidator).Assembly);
 
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+
 builder.Services.AddScoped<IEmailService,EmailService>();
-builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-    };
-});
+builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 
+builder.Services.AddOptionsJWT(builder.Configuration);
+
+builder.Services.OptionsSwagger();
 
 
 builder.AddServiceDefaults();
 
-// Add services to the container.
+
 
 
 
@@ -90,19 +83,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next.Invoke();
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new { Title = "Internal Server Error", Detail = ex.Message });
-    }
-});
-
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 
 app.Run();

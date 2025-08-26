@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Services.EmailServices
+namespace Application.IServices
 {
     public interface IEmailService
     {
-        void SendWelcomeEmail(string toEmail, string bookTitle);
+        void SendWelcomeEmail(string toEmail, string Message);
+
     }
 }

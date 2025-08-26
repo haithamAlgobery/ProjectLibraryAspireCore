@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
-using Application.Queries;
+using Application.FeaturesCQRS.Queries;
+using Application.Helper;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
@@ -9,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Handlers
+namespace Application.FeaturesCQRS.Handlers
 {
-    public class GetAllBooksHandler : IRequestHandler<GetAllBooksQuery, IEnumerable<BookDto>>
+    public class GetAllBooksHandler : IRequestHandler<GetAllBooksQuery, IEnumerable<GetBookDto>>
     {
         private readonly IBookRepository _repository;
 
@@ -20,12 +21,12 @@ namespace Application.Handlers
             _repository = repository;
         }
 
-        public async Task<IEnumerable<BookDto>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<GetBookDto>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
         {
             var books = await _repository.GetAllAsync();
-            return books.Select(b => new BookDto { Title = b.Title, Author = b.Author, Year = b.Year });
+            return books.Select(b =>b.MapDataBook());
         }
 
-       
+
     }
 }
